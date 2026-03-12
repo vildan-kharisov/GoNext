@@ -1,24 +1,59 @@
-# Expo Router Example
+# GoNext — Дневник туриста (MVP)
 
-Use [`expo-router`](https://docs.expo.dev/router/introduction/) to build native navigation using files in the `app/` directory.
+Офлайн мобильное приложение на `Expo Router + TypeScript + React Native Paper`.
 
-## Launch your own
+## Что реализовано в MVP
 
-[![Launch with Expo](https://github.com/expo/examples/blob/master/.gh-assets/launch.svg?raw=true)](https://launch.expo.dev/?github=https://github.com/expo/examples/tree/master/with-router)
+- Режим `Места`: список, создание, карточка, редактирование, фото, открытие на карте.
+- Режим `Поездки`: список, создание, детали, маршрут, порядок, отметка посещения, заметки, фото.
+- Режим `Следующее место`: выбор активной поездки и показ следующей точки маршрута.
+- Все данные хранятся локально:
+  - native: `SQLite` + локальная файловая система для фото;
+  - web: fallback через `localStorage`.
 
-## 🚀 How to use
+## Технологии
 
-```sh
-npx create-expo-app -e with-router
+- Expo SDK 55
+- Expo Router
+- React Native Paper
+- SQLite (`expo-sqlite`)
+- Image Picker (`expo-image-picker`)
+- File System (`expo-file-system`)
+
+## Быстрый запуск (PowerShell)
+
+```powershell
+npm install
+npm run start -- --clear
 ```
 
-## Deploy
+## Команды проекта (PowerShell)
 
-Deploy on all platforms with Expo Application Services (EAS).
+```powershell
+# Запуск
+npm run start
+npm run android
+npm run ios
+npm run web
 
-- Deploy the website: `npx eas-cli deploy` — [Learn more](https://docs.expo.dev/eas/hosting/get-started/)
-- Deploy on iOS and Android using: `npx eas-cli build` — [Learn more](https://expo.dev/eas)
+# Проверка типов
+npm run typecheck
 
-## 📝 Notes
+# Веб-сборка для демонстрации
+npm run build:web
+```
 
-- [Expo Router: Docs](https://docs.expo.dev/router/introduction/)
+## Структура проекта
+
+- `app/` — экраны и маршруты Expo Router.
+- `src/components/` — переиспользуемые UI-компоненты.
+- `src/database/` — инициализация БД, миграции, репозитории.
+- `src/services/` — сервисы работы с локальными ресурсами (например, фото).
+- `assets/` — изображения и статические ресурсы.
+
+## Документы
+
+- `PROJECT.md` — описание продукта и требований.
+- `PLAN.md` — план этапов реализации.
+- `TEST_STAGE8.md` — чек-лист ручного тестирования MVP.
+- `MVP_RELEASE.md` — инструкция подготовки и демонстрации релизной версии.
