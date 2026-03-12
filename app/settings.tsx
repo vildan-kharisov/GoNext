@@ -1,10 +1,26 @@
 import { useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { Alert, StyleSheet, View } from "react-native";
 import { Button, Card, List, Text } from "react-native-paper";
 import { AppScreen } from "../src/components/AppScreen";
+import { resetAllData } from "../src/database";
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const [isResetting, setIsResetting] = useState(false);
+
+  const onResetData = async () => {
+    setIsResetting(true);
+    try {
+      await resetAllData();
+      Alert.alert("Готово", "Локальные данные приложения очищены.");
+    } catch (error) {
+      console.error("Failed to reset app data", error);
+      Alert.alert("Ошибка", "Не удалось очистить локальные данные.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   return (
     <AppScreen title="Настройки" canGoBack>
@@ -34,13 +50,21 @@ export default function SettingsScreen() {
         </Card>
 
         <Card style={styles.card}>
-          <Card.Title title="О приложении" />
+          <Card.Title title="О приложении и тестирование" />
           <Card.Content style={styles.aboutBlock}>
             <Text variant="bodyMedium">
               GoNext — офлайн-дневник туриста: места, поездки и следующее место по маршруту.
             </Text>
             <Button mode="outlined" onPress={() => router.push("/")}>
               На главный экран
+            </Button>
+            <Button
+              mode="contained-tonal"
+              onPress={() => void onResetData()}
+              loading={isResetting}
+              disabled={isResetting}
+            >
+              Сбросить локальные данные (MVP тест)
             </Button>
           </Card.Content>
         </Card>
