@@ -1,9 +1,10 @@
 import { StyleSheet, View } from "react-native";
 import { Appbar, Text } from "react-native-paper";
+import { ScreenBackground } from "../src/components/ScreenBackground";
 
 export default function NextPlaceScreen() {
   return (
-    <View style={styles.container}>
+    <ScreenBackground>
       <Appbar.Header>
         <Appbar.Content title="Следующее место" />
       </Appbar.Header>
@@ -12,7 +13,7 @@ export default function NextPlaceScreen() {
           Экран следующего места по маршруту (в разработке)
         </Text>
       </View>
-    </View>
+    </ScreenBackground>
   );
 }
 
