@@ -12,22 +12,32 @@ import {
 import { ScreenBackground } from "../src/components/ScreenBackground";
 import { createPlace } from "../src/database";
 
-function parseCoordinate(value: string): number | null {
+function parseCoordinates(value: string): { latitude: number; longitude: number } | null {
   const trimmed = value.trim();
   if (!trimmed) {
     return null;
   }
 
-  const parsed = Number(trimmed.replace(",", "."));
-  return Number.isFinite(parsed) ? parsed : null;
+  const parts = trimmed.split(",").map((part) => part.trim().replace(",", "."));
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  const latitude = Number(parts[0]);
+  const longitude = Number(parts[1]);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return null;
+  }
+
+  return { latitude, longitude };
 }
 
 export default function PlaceCreateScreen() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [coordinates, setCoordinates] = useState("");
   const [visitLater, setVisitLater] = useState(true);
   const [liked, setLiked] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -44,16 +54,20 @@ export default function PlaceCreateScreen() {
     setIsSaving(true);
 
     try {
-      const lat = parseCoordinate(latitude);
-      const lng = parseCoordinate(longitude);
+      const parsedCoordinates = parseCoordinates(coordinates);
+      if (coordinates.trim() && !parsedCoordinates) {
+        setErrorText("Введите координаты в формате: 55.744920, 37.604677");
+        setIsSaving(false);
+        return;
+      }
 
       const newId = await createPlace({
         name: trimmedName,
         description: description.trim() || null,
         visitLater,
         liked,
-        latitude: lat,
-        longitude: lng,
+        latitude: parsedCoordinates?.latitude ?? null,
+        longitude: parsedCoordinates?.longitude ?? null,
       });
 
       router.replace(`/place/${newId}`);
@@ -89,17 +103,10 @@ export default function PlaceCreateScreen() {
           />
           <TextInput
             mode="outlined"
-            label="Широта (latitude)"
-            value={latitude}
-            onChangeText={setLatitude}
-            keyboardType="numeric"
-          />
-          <TextInput
-            mode="outlined"
-            label="Долгота (longitude)"
-            value={longitude}
-            onChangeText={setLongitude}
-            keyboardType="numeric"
+            label="Координаты"
+            placeholder="55.744920, 37.604677"
+            value={coordinates}
+            onChangeText={setCoordinates}
           />
 
           <View style={styles.switchRow}>
