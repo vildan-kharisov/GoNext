@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { Stack } from "expo-router";
-import { Provider as PaperProvider } from "react-native-paper";
+import { MD3LightTheme, Provider as PaperProvider } from "react-native-paper";
 import { initializeDatabase } from "../src/database/init";
+
+const appTheme = {
+  ...MD3LightTheme,
+  roundness: 12,
+  colors: {
+    ...MD3LightTheme.colors,
+    primary: "#2A73B8",
+    secondary: "#4F7FAF",
+  },
+};
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
@@ -19,7 +29,7 @@ export default function RootLayout() {
 
   if (!isReady) {
     return (
-      <PaperProvider>
+      <PaperProvider theme={appTheme}>
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
@@ -30,7 +40,7 @@ export default function RootLayout() {
   }
 
   return (
-    <PaperProvider>
+    <PaperProvider theme={appTheme}>
       <Stack screenOptions={{ headerShown: false }} />
     </PaperProvider>
   );

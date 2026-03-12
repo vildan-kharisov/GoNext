@@ -2,8 +2,9 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Linking, StyleSheet, View } from "react-native";
-import { Appbar, Button, Card, List, Text } from "react-native-paper";
-import { ScreenBackground } from "../src/components/ScreenBackground";
+import { Button, Card, List, Text } from "react-native-paper";
+import { AppScreen } from "../src/components/AppScreen";
+import { StateBlock } from "../src/components/StateBlock";
 import {
   getCurrentTrip,
   getNextTripPlace,
@@ -106,16 +107,14 @@ export default function NextPlaceScreen() {
   };
 
   return (
-    <ScreenBackground>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Следующее место" />
-        <Appbar.Action icon="refresh" onPress={() => void loadData()} />
-      </Appbar.Header>
-
+    <AppScreen
+      title="Следующее место"
+      canGoBack
+      actions={[{ icon: "refresh", onPress: () => void loadData() }]}
+    >
       <View style={styles.content}>
         {isLoading ? (
-          <Text variant="titleMedium">Загрузка...</Text>
+          <StateBlock title="Загрузка..." />
         ) : !currentTrip ? (
           <Card style={styles.card}>
             <Card.Title title="Нет текущей поездки" />
@@ -189,7 +188,7 @@ export default function NextPlaceScreen() {
 
         {errorText ? <Text style={styles.errorText}>{errorText}</Text> : null}
       </View>
-    </ScreenBackground>
+    </AppScreen>
   );
 }
 
@@ -198,6 +197,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     justifyContent: "center",
+    gap: 12,
   },
   card: {
     backgroundColor: "rgba(255, 255, 255, 0.92)",

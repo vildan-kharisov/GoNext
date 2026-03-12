@@ -1,9 +1,10 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
-import { Appbar, FAB, List, Text } from "react-native-paper";
-import { ScreenBackground } from "../src/components/ScreenBackground";
+import { FlatList, StyleSheet } from "react-native";
+import { FAB, List } from "react-native-paper";
+import { AppScreen } from "../src/components/AppScreen";
+import { StateBlock } from "../src/components/StateBlock";
 import { listPlaces } from "../src/database";
 import { Place } from "../src/types/models";
 
@@ -11,13 +12,16 @@ export default function PlacesScreen() {
   const router = useRouter();
   const [places, setPlaces] = useState<Place[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorText, setErrorText] = useState<string | null>(null);
 
   const loadPlaces = useCallback(async () => {
     try {
+      setErrorText(null);
       const data = await listPlaces();
       setPlaces(data);
     } catch (error) {
       console.error("Failed to load places", error);
+      setErrorText("Не удалось загрузить список мест.");
     } finally {
       setIsLoading(false);
     }
@@ -30,20 +34,23 @@ export default function PlacesScreen() {
   );
 
   return (
-    <ScreenBackground>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Места" />
-        <Appbar.Action
-          icon="plus"
-          onPress={() => router.push("/place-create")}
-        />
-      </Appbar.Header>
-
+    <AppScreen
+      title="Места"
+      canGoBack
+      actions={[{ icon: "plus", onPress: () => router.push("/place-create") }]}
+    >
       {isLoading ? (
-        <View style={styles.content}>
-          <Text variant="titleMedium">Загрузка мест...</Text>
-        </View>
+        <StateBlock title="Загрузка мест..." />
+      ) : errorText ? (
+        <StateBlock
+          title="Ошибка загрузки"
+          description={errorText}
+          actionLabel="Повторить"
+          onActionPress={() => {
+            setIsLoading(true);
+            void loadPlaces();
+          }}
+        />
       ) : (
         <FlatList
           contentContainerStyle={
@@ -62,10 +69,18 @@ export default function PlacesScreen() {
             />
           )}
           ListEmptyComponent={
-            <Text variant="titleMedium">
-              Пока нет мест. Нажмите "+" чтобы добавить первое.
-            </Text>
+            <StateBlock
+              title="Пока нет мест"
+              description='Нажмите "+" чтобы добавить первое место.'
+              actionLabel="Создать место"
+              onActionPress={() => router.push("/place-create")}
+            />
           }
+          onRefresh={() => {
+            setIsLoading(true);
+            void loadPlaces();
+          }}
+          refreshing={isLoading && places.length > 0}
         />
       )}
 
@@ -74,17 +89,11 @@ export default function PlacesScreen() {
         style={styles.fab}
         onPress={() => router.push("/place-create")}
       />
-    </ScreenBackground>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
   listContainer: {
     padding: 12,
   },
@@ -95,9 +104,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
+    padding: 12,
   },
   fab: {
     position: "absolute",

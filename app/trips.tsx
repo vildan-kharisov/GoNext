@@ -1,9 +1,10 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { FlatList, StyleSheet, View } from "react-native";
-import { Appbar, FAB, List, Text } from "react-native-paper";
-import { ScreenBackground } from "../src/components/ScreenBackground";
+import { FlatList, StyleSheet } from "react-native";
+import { FAB, List } from "react-native-paper";
+import { AppScreen } from "../src/components/AppScreen";
+import { StateBlock } from "../src/components/StateBlock";
 import { listTrips } from "../src/database";
 import { Trip } from "../src/types/models";
 
@@ -11,13 +12,16 @@ export default function TripsScreen() {
   const router = useRouter();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorText, setErrorText] = useState<string | null>(null);
 
   const loadTrips = useCallback(async () => {
     try {
+      setErrorText(null);
       const data = await listTrips();
       setTrips(data);
     } catch (error) {
       console.error("Failed to load trips", error);
+      setErrorText("Не удалось загрузить список поездок.");
     } finally {
       setIsLoading(false);
     }
@@ -30,17 +34,23 @@ export default function TripsScreen() {
   );
 
   return (
-    <ScreenBackground>
-      <Appbar.Header>
-        <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Поездки" />
-        <Appbar.Action icon="plus" onPress={() => router.push("/trip-create")} />
-      </Appbar.Header>
-
+    <AppScreen
+      title="Поездки"
+      canGoBack
+      actions={[{ icon: "plus", onPress: () => router.push("/trip-create") }]}
+    >
       {isLoading ? (
-        <View style={styles.content}>
-          <Text variant="titleMedium">Загрузка поездок...</Text>
-        </View>
+        <StateBlock title="Загрузка поездок..." />
+      ) : errorText ? (
+        <StateBlock
+          title="Ошибка загрузки"
+          description={errorText}
+          actionLabel="Повторить"
+          onActionPress={() => {
+            setIsLoading(true);
+            void loadTrips();
+          }}
+        />
       ) : (
         <FlatList
           contentContainerStyle={
@@ -68,10 +78,18 @@ export default function TripsScreen() {
             />
           )}
           ListEmptyComponent={
-            <Text variant="titleMedium">
-              Поездок пока нет. Нажмите "+" для создания.
-            </Text>
+            <StateBlock
+              title="Пока нет поездок"
+              description='Нажмите "+" для создания первой поездки.'
+              actionLabel="Создать поездку"
+              onActionPress={() => router.push("/trip-create")}
+            />
           }
+          onRefresh={() => {
+            setIsLoading(true);
+            void loadTrips();
+          }}
+          refreshing={isLoading && trips.length > 0}
         />
       )}
 
@@ -80,17 +98,11 @@ export default function TripsScreen() {
         style={styles.fab}
         onPress={() => router.push("/trip-create")}
       />
-    </ScreenBackground>
+    </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
   listContainer: {
     padding: 12,
   },
@@ -101,9 +113,7 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flexGrow: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
+    padding: 12,
   },
   fab: {
     position: "absolute",
