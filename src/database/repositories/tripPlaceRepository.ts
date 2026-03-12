@@ -1,5 +1,5 @@
 import { getDatabase } from "../client";
-import { TripPlace } from "../../types/models";
+import { TripPlace, TripPlacePhoto } from "../../types/models";
 
 interface TripPlaceRow {
   id: number;
@@ -16,6 +16,13 @@ interface NextTripPlaceRow extends TripPlaceRow {
   place_description: string | null;
   latitude: number | null;
   longitude: number | null;
+}
+
+interface TripPlacePhotoRow {
+  id: number;
+  trip_place_id: number;
+  uri: string;
+  created_at: string;
 }
 
 export interface CreateTripPlaceInput {
@@ -42,6 +49,15 @@ export interface NextTripPlaceResult {
     description: string | null;
     latitude: number | null;
     longitude: number | null;
+  };
+}
+
+function mapTripPlacePhoto(row: TripPlacePhotoRow): TripPlacePhoto {
+  return {
+    id: row.id,
+    tripPlaceId: row.trip_place_id,
+    uri: row.uri,
+    createdAt: row.created_at,
   };
 }
 
@@ -148,4 +164,28 @@ export async function getNextTripPlace(
       longitude: row.longitude,
     },
   };
+}
+
+export async function addTripPlacePhoto(
+  tripPlaceId: number,
+  uri: string
+): Promise<number> {
+  const db = await getDatabase();
+  const result = await db.runAsync(
+    "INSERT INTO trip_place_photos (trip_place_id, uri) VALUES (?, ?);",
+    tripPlaceId,
+    uri
+  );
+  return Number(result.lastInsertRowId);
+}
+
+export async function listTripPlacePhotos(
+  tripPlaceId: number
+): Promise<TripPlacePhoto[]> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<TripPlacePhotoRow>(
+    "SELECT * FROM trip_place_photos WHERE trip_place_id = ? ORDER BY created_at DESC;",
+    tripPlaceId
+  );
+  return rows.map(mapTripPlacePhoto);
 }
