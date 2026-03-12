@@ -30,6 +30,7 @@ import {
   updateTrip,
   updateTripPlace,
 } from "../../src/database";
+import { saveTripPlacePhotoLocally } from "../../src/services/photoStorage";
 import { Place, Trip, TripPlace, TripPlacePhoto } from "../../src/types/models";
 
 type PhotosMap = Record<number, TripPlacePhoto[]>;
@@ -249,7 +250,8 @@ export default function TripDetailsScreen() {
       return;
     }
 
-    await addTripPlacePhoto(tripPlaceId, result.assets[0].uri);
+    const localUri = await saveTripPlacePhotoLocally(result.assets[0].uri);
+    await addTripPlacePhoto(tripPlaceId, localUri);
     await loadData();
   };
 

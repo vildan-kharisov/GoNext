@@ -24,6 +24,7 @@ import {
   listPlacePhotos,
   updatePlace,
 } from "../../src/database";
+import { savePlacePhotoLocally } from "../../src/services/photoStorage";
 import { Place, PlacePhoto } from "../../src/types/models";
 
 function parseCoordinates(value: string): { latitude: number; longitude: number } | null {
@@ -203,7 +204,8 @@ export default function PlaceDetailsScreen() {
         return;
       }
 
-      await addPlacePhoto(place.id, result.assets[0].uri);
+      const localUri = await savePlacePhotoLocally(result.assets[0].uri);
+      await addPlacePhoto(place.id, localUri);
       const updatedPhotos = await listPlacePhotos(place.id);
       setPhotos(updatedPhotos);
     } catch (error) {

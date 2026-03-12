@@ -13,6 +13,7 @@
     "@types/react": "~19.2.10",
     "expo": "^55.0.0",
     "expo-constants": "^55.0.7",
+    "expo-file-system": "~55.0.10",
     "expo-image-picker": "~55.0.12",
     "expo-router": "~55.0.4",
     "expo-sqlite": "~55.0.10",
