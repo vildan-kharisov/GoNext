@@ -1,12 +1,14 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
-import { Button, Card, List, Text } from "react-native-paper";
+import { Button, Card, List, SegmentedButtons, Text } from "react-native-paper";
 import { AppScreen } from "../src/components/AppScreen";
 import { resetAllData } from "../src/database";
+import { useAppThemeMode } from "../src/theme/AppThemeContext";
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { mode, setMode } = useAppThemeMode();
   const [isResetting, setIsResetting] = useState(false);
 
   const onResetData = async () => {
@@ -25,6 +27,23 @@ export default function SettingsScreen() {
   return (
     <AppScreen title="Настройки" canGoBack>
       <View style={styles.content}>
+        <Card style={styles.card}>
+          <Card.Title title="Тема интерфейса" />
+          <Card.Content style={styles.aboutBlock}>
+            <SegmentedButtons
+              value={mode}
+              onValueChange={(value) => setMode(value as "light" | "dark")}
+              buttons={[
+                { value: "light", label: "Светлая" },
+                { value: "dark", label: "Тёмная" },
+              ]}
+            />
+            <Text variant="bodyMedium">
+              В тёмной теме фоновое изображение автоматически отключается.
+            </Text>
+          </Card.Content>
+        </Card>
+
         <Card style={styles.card}>
           <Card.Title title="Быстрые действия" />
           <Card.Content>
