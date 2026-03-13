@@ -8,27 +8,28 @@ import {
 } from "react-native-paper";
 import { initializeDatabase } from "../src/database/init";
 import {
+  AppPrimaryColor,
   AppThemeMode,
   AppThemeProvider,
   useAppThemeMode,
 } from "../src/theme/AppThemeContext";
 
-function getPaperTheme(mode: AppThemeMode) {
+function getPaperTheme(mode: AppThemeMode, primaryColor: AppPrimaryColor) {
   const baseTheme = mode === "dark" ? MD3DarkTheme : MD3LightTheme;
   return {
     ...baseTheme,
-  roundness: 12,
-  colors: {
+    roundness: 12,
+    colors: {
       ...baseTheme.colors,
-    primary: "#2A73B8",
-    secondary: "#4F7FAF",
-  },
-};
+      primary: primaryColor,
+      secondary: primaryColor,
+    },
+  };
 }
 
 function RootLayoutContent() {
-  const { mode } = useAppThemeMode();
-  const appTheme = getPaperTheme(mode);
+  const { mode, primaryColor } = useAppThemeMode();
+  const appTheme = getPaperTheme(mode, primaryColor);
 
   const [isReady, setIsReady] = useState(false);
 

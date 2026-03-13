@@ -1,14 +1,17 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { Button, Card, List, SegmentedButtons, Text } from "react-native-paper";
 import { AppScreen } from "../src/components/AppScreen";
 import { resetAllData } from "../src/database";
-import { useAppThemeMode } from "../src/theme/AppThemeContext";
+import {
+  THEME_PRIMARY_COLORS,
+  useAppThemeMode,
+} from "../src/theme/AppThemeContext";
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { mode, setMode } = useAppThemeMode();
+  const { mode, setMode, primaryColor, setPrimaryColor } = useAppThemeMode();
   const [isResetting, setIsResetting] = useState(false);
 
   const onResetData = async () => {
@@ -41,6 +44,29 @@ export default function SettingsScreen() {
             <Text variant="bodyMedium">
               В тёмной теме фоновое изображение автоматически отключается.
             </Text>
+            <Text variant="bodyMedium">Основной цвет темы:</Text>
+            <View style={styles.paletteGrid}>
+              {THEME_PRIMARY_COLORS.map((color) => {
+                const isSelected = color === primaryColor;
+                return (
+                  <Pressable
+                    key={color}
+                    onPress={() => setPrimaryColor(color)}
+                    style={[
+                      styles.colorCircle,
+                      { backgroundColor: color },
+                      isSelected ? styles.colorCircleSelected : null,
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Выбрать цвет ${color}`}
+                  >
+                    {isSelected ? (
+                      <View style={styles.selectedDot} />
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+            </View>
           </Card.Content>
         </Card>
 
@@ -103,5 +129,27 @@ const styles = StyleSheet.create({
   },
   aboutBlock: {
     gap: 10,
+  },
+  paletteGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  colorCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  colorCircleSelected: {
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  selectedDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#FFFFFF",
   },
 });
