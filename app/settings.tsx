@@ -2,8 +2,10 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { Button, Card, List, SegmentedButtons, Text } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import { AppScreen } from "../src/components/AppScreen";
 import { resetAllData } from "../src/database";
+import { getCurrentLanguage, setAppLanguage, SupportedLanguage } from "../src/i18n";
 import {
   THEME_PRIMARY_COLORS,
   useAppThemeMode,
@@ -11,40 +13,62 @@ import {
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { mode, setMode, primaryColor, setPrimaryColor } = useAppThemeMode();
   const [isResetting, setIsResetting] = useState(false);
+  const [language, setLanguage] = useState<SupportedLanguage>(getCurrentLanguage());
+
+  const onLanguageChange = async (value: string) => {
+    const nextLanguage = value === "en" ? "en" : "ru";
+    setLanguage(nextLanguage);
+    await setAppLanguage(nextLanguage);
+  };
 
   const onResetData = async () => {
     setIsResetting(true);
     try {
       await resetAllData();
-      Alert.alert("Готово", "Локальные данные приложения очищены.");
+      Alert.alert(t("settings.resetSuccessTitle"), t("settings.resetSuccessMessage"));
     } catch (error) {
       console.error("Failed to reset app data", error);
-      Alert.alert("Ошибка", "Не удалось очистить локальные данные.");
+      Alert.alert(t("settings.resetErrorTitle"), t("settings.resetErrorMessage"));
     } finally {
       setIsResetting(false);
     }
   };
 
   return (
-    <AppScreen title="Настройки" canGoBack>
+    <AppScreen title={t("settings.title")} canGoBack>
       <View style={styles.content}>
         <Card style={styles.card}>
-          <Card.Title title="Тема интерфейса" />
+          <Card.Title title={t("settings.languageTitle")} />
+          <Card.Content style={styles.aboutBlock}>
+            <SegmentedButtons
+              value={language}
+              onValueChange={(value) => void onLanguageChange(value)}
+              buttons={[
+                { value: "ru", label: t("settings.languageRu") },
+                { value: "en", label: t("settings.languageEn") },
+              ]}
+            />
+          </Card.Content>
+        </Card>
+
+        <Card style={styles.card}>
+          <Card.Title title={t("settings.themeTitle")} />
           <Card.Content style={styles.aboutBlock}>
             <SegmentedButtons
               value={mode}
               onValueChange={(value) => setMode(value as "light" | "dark")}
               buttons={[
-                { value: "light", label: "Светлая" },
-                { value: "dark", label: "Тёмная" },
+                { value: "light", label: t("settings.themeLight") },
+                { value: "dark", label: t("settings.themeDark") },
               ]}
             />
             <Text variant="bodyMedium">
-              В тёмной теме фоновое изображение автоматически отключается.
+              {t("settings.darkNoImageHint")}
             </Text>
-            <Text variant="bodyMedium">Основной цвет темы:</Text>
+            <Text variant="bodyMedium">{t("settings.primaryColor")}</Text>
             <View style={styles.paletteGrid}>
               {THEME_PRIMARY_COLORS.map((color) => {
                 const isSelected = color === primaryColor;
@@ -58,7 +82,7 @@ export default function SettingsScreen() {
                       isSelected ? styles.colorCircleSelected : null,
                     ]}
                     accessibilityRole="button"
-                    accessibilityLabel={`Выбрать цвет ${color}`}
+                    accessibilityLabel={t("settings.chooseColorA11y", { color })}
                   >
                     {isSelected ? (
                       <View style={styles.selectedDot} />
@@ -71,23 +95,23 @@ export default function SettingsScreen() {
         </Card>
 
         <Card style={styles.card}>
-          <Card.Title title="Быстрые действия" />
+          <Card.Title title={t("settings.quickActions")} />
           <Card.Content>
             <List.Item
-              title="Места"
-              description="Перейти к базе мест"
+              title={t("settings.places")}
+              description={t("settings.placesDescription")}
               left={(props) => <List.Icon {...props} icon="map-marker" />}
               onPress={() => router.push("/places")}
             />
             <List.Item
-              title="Поездки"
-              description="Открыть список поездок"
+              title={t("settings.trips")}
+              description={t("settings.tripsDescription")}
               left={(props) => <List.Icon {...props} icon="map-marker-path" />}
               onPress={() => router.push("/trips")}
             />
             <List.Item
-              title="Следующее место"
-              description="Открыть навигационный экран"
+              title={t("settings.nextPlace")}
+              description={t("settings.nextPlaceDescription")}
               left={(props) => <List.Icon {...props} icon="navigation-variant" />}
               onPress={() => router.push("/next-place")}
             />
@@ -95,13 +119,13 @@ export default function SettingsScreen() {
         </Card>
 
         <Card style={styles.card}>
-          <Card.Title title="О приложении и тестирование" />
+          <Card.Title title={t("settings.aboutAndTesting")} />
           <Card.Content style={styles.aboutBlock}>
             <Text variant="bodyMedium">
-              GoNext — офлайн-дневник туриста: места, поездки и следующее место по маршруту.
+              {t("settings.aboutText")}
             </Text>
             <Button mode="outlined" onPress={() => router.push("/")}>
-              На главный экран
+              {t("settings.goHome")}
             </Button>
             <Button
               mode="contained-tonal"
@@ -109,7 +133,7 @@ export default function SettingsScreen() {
               loading={isResetting}
               disabled={isResetting}
             >
-              Сбросить локальные данные (MVP тест)
+              {t("settings.resetData")}
             </Button>
           </Card.Content>
         </Card>

@@ -3,6 +3,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Image, ScrollView, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import {
   Appbar,
   Button,
@@ -39,6 +40,7 @@ type TextMap = Record<number, string>;
 export default function TripDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const tripId = useMemo(() => Number(id), [id]);
 
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -61,7 +63,7 @@ export default function TripDetailsScreen() {
 
   const loadData = useCallback(async () => {
     if (!Number.isFinite(tripId)) {
-      setErrorText("Некорректный id поездки.");
+      setErrorText(t("tripDetails.invalidId"));
       setIsLoading(false);
       return;
     }
@@ -74,7 +76,7 @@ export default function TripDetailsScreen() {
       ]);
 
       if (!tripData) {
-        setErrorText("Поездка не найдена.");
+        setErrorText(t("tripDetails.notFound"));
         return;
       }
 
@@ -110,11 +112,11 @@ export default function TripDetailsScreen() {
       setNotesDraft(nextNotesDraft);
     } catch (error) {
       console.error("Failed to load trip details", error);
-      setErrorText("Не удалось загрузить детали поездки.");
+      setErrorText(t("tripDetails.loadError"));
     } finally {
       setIsLoading(false);
     }
-  }, [tripId]);
+  }, [tripId, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -130,7 +132,7 @@ export default function TripDetailsScreen() {
 
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
-      setErrorText("Название поездки обязательно.");
+      setErrorText(t("tripDetails.requiredName"));
       return;
     }
 
@@ -145,13 +147,13 @@ export default function TripDetailsScreen() {
         current,
       });
       if (!ok) {
-        setErrorText("Не удалось сохранить поездку.");
+        setErrorText(t("tripDetails.saveTripError"));
       } else {
         await loadData();
       }
     } catch (error) {
       console.error("Failed to save trip", error);
-      setErrorText("Ошибка при сохранении поездки.");
+      setErrorText(t("tripDetails.saveTripException"));
     } finally {
       setIsSavingTrip(false);
     }
@@ -173,7 +175,7 @@ export default function TripDetailsScreen() {
   const onCreateAndAddPlace = async () => {
     const trimmed = newPlaceName.trim();
     if (!trimmed) {
-      setErrorText("Введите название нового места.");
+      setErrorText(t("tripDetails.newPlaceRequired"));
       return;
     }
 
@@ -187,7 +189,7 @@ export default function TripDetailsScreen() {
       await addPlaceToTrip(placeId);
     } catch (error) {
       console.error("Failed to create and add place", error);
-      setErrorText("Не удалось создать и добавить место.");
+      setErrorText(t("tripDetails.createAndAddError"));
     }
   };
 
@@ -237,7 +239,7 @@ export default function TripDetailsScreen() {
   const onAddTripPlacePhoto = async (tripPlaceId: number) => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      setErrorText("Нужен доступ к галерее для фото маршрута.");
+      setErrorText(t("tripDetails.routePhotoPermission"));
       return;
     }
 
@@ -273,10 +275,10 @@ export default function TripDetailsScreen() {
       <ScreenBackground>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
-          <Appbar.Content title="Поездка" />
+          <Appbar.Content title={t("tripDetails.titleShort")} />
         </Appbar.Header>
         <View style={styles.centered}>
-          <Text variant="titleMedium">Загрузка...</Text>
+          <Text variant="titleMedium">{t("common.loading")}</Text>
         </View>
       </ScreenBackground>
     );
@@ -287,10 +289,10 @@ export default function TripDetailsScreen() {
       <ScreenBackground>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
-          <Appbar.Content title="Поездка" />
+          <Appbar.Content title={t("tripDetails.titleShort")} />
         </Appbar.Header>
         <View style={styles.centered}>
-          <Text variant="titleMedium">Поездка не найдена.</Text>
+          <Text variant="titleMedium">{t("tripDetails.notFound")}</Text>
         </View>
       </ScreenBackground>
     );
@@ -300,71 +302,71 @@ export default function TripDetailsScreen() {
     <ScreenBackground>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Детали поездки" />
+        <Appbar.Content title={t("tripDetails.title")} />
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.content}>
         <Card style={styles.card}>
-          <Card.Title title="Информация о поездке" />
+          <Card.Title title={t("tripDetails.tripInfo")} />
           <Card.Content style={styles.sectionContent}>
             <TextInput
               mode="outlined"
-              label="Название"
+              label={t("tripCreate.tripName")}
               value={title}
               onChangeText={setTitle}
             />
             <TextInput
               mode="outlined"
-              label="Описание"
+              label={t("tripCreate.description")}
               value={description}
               onChangeText={setDescription}
               multiline
             />
             <TextInput
               mode="outlined"
-              label="Дата начала (YYYY-MM-DD)"
+              label={t("tripCreate.startDate")}
               value={startDate}
               onChangeText={setStartDate}
             />
             <TextInput
               mode="outlined"
-              label="Дата окончания (YYYY-MM-DD)"
+              label={t("tripCreate.endDate")}
               value={endDate}
               onChangeText={setEndDate}
             />
             <View style={styles.switchRow}>
-              <Text variant="bodyLarge">Текущая поездка</Text>
+              <Text variant="bodyLarge">{t("tripDetails.currentTrip")}</Text>
               <Switch value={current} onValueChange={setCurrent} />
             </View>
             <Button mode="contained" loading={isSavingTrip} onPress={onSaveTrip}>
-              Сохранить поездку
+              {t("tripDetails.saveTrip")}
             </Button>
           </Card.Content>
         </Card>
 
         <Card style={styles.card}>
-          <Card.Title title="Маршрут поездки" />
+          <Card.Title title={t("tripDetails.tripRoute")} />
           <Card.Content style={styles.sectionContent}>
             <Button mode="outlined" onPress={() => setIsPlaceDialogVisible(true)}>
-              Добавить место из базы
+              {t("tripDetails.addFromBase")}
             </Button>
 
             <View style={styles.newPlaceRow}>
               <TextInput
                 mode="outlined"
-                label="Новое место"
+                label={t("tripDetails.newPlace")}
                 value={newPlaceName}
                 onChangeText={setNewPlaceName}
                 style={styles.flexInput}
               />
               <Button mode="contained-tonal" onPress={onCreateAndAddPlace}>
-                Создать и добавить
+                {t("tripDetails.createAndAdd")}
               </Button>
             </View>
 
             {sortedTripPlaces.length === 0 ? (
               <Text variant="bodyLarge">
-                Маршрут пока пуст. Добавьте первое место.
+                {t("tripDetails.emptyRoute")}
               </Text>
             ) : (
               sortedTripPlaces.map((item, index) => {
@@ -373,8 +375,10 @@ export default function TripDetailsScreen() {
                 return (
                   <Card key={item.id} style={styles.routeCard}>
                     <Card.Title
-                      title={`${index + 1}. ${place?.name ?? `Место #${item.placeId}`}`}
-                      subtitle={place?.description ?? "Без описания"}
+                      title={`${index + 1}. ${
+                        place?.name ?? t("tripDetails.placeFallback", { id: item.placeId })
+                      }`}
+                      subtitle={place?.description ?? t("common.noDescription")}
                       right={() => (
                         <View style={styles.routeActions}>
                           <IconButton
@@ -396,7 +400,7 @@ export default function TripDetailsScreen() {
                     />
                     <Card.Content style={styles.sectionContent}>
                       <View style={styles.switchRow}>
-                        <Text variant="bodyLarge">Посещено</Text>
+                        <Text variant="bodyLarge">{t("tripDetails.routeVisited")}</Text>
                         <Switch
                           value={item.visited}
                           onValueChange={(value) => void onToggleVisited(item, value)}
@@ -404,7 +408,7 @@ export default function TripDetailsScreen() {
                       </View>
                       <TextInput
                         mode="outlined"
-                        label="Дата визита (YYYY-MM-DD)"
+                        label={t("tripDetails.visitDate")}
                         value={visitDatesDraft[item.id] ?? ""}
                         onChangeText={(value) =>
                           setVisitDatesDraft((prev) => ({
@@ -415,7 +419,7 @@ export default function TripDetailsScreen() {
                       />
                       <TextInput
                         mode="outlined"
-                        label="Заметки"
+                        label={t("tripDetails.notes")}
                         value={notesDraft[item.id] ?? ""}
                         onChangeText={(value) =>
                           setNotesDraft((prev) => ({
@@ -430,13 +434,13 @@ export default function TripDetailsScreen() {
                           mode="contained"
                           onPress={() => void onSaveTripPlaceNotes(item)}
                         >
-                          Сохранить заметки
+                          {t("tripDetails.saveNotes")}
                         </Button>
                         <Button
                           mode="outlined"
                           onPress={() => void onAddTripPlacePhoto(item.id)}
                         >
-                          Добавить фото
+                          {t("tripDetails.addPhoto")}
                         </Button>
                       </View>
 
@@ -454,7 +458,7 @@ export default function TripDetailsScreen() {
                           ))}
                         </ScrollView>
                       ) : (
-                        <Text variant="bodySmall">Фото для пункта не добавлены.</Text>
+                        <Text variant="bodySmall">{t("tripDetails.routeNoPhotos")}</Text>
                       )}
                     </Card.Content>
                   </Card>
@@ -474,17 +478,17 @@ export default function TripDetailsScreen() {
           visible={isPlaceDialogVisible}
           onDismiss={() => setIsPlaceDialogVisible(false)}
         >
-          <Dialog.Title>Выберите место</Dialog.Title>
+          <Dialog.Title>{t("tripDetails.selectPlace")}</Dialog.Title>
           <Dialog.Content>
             {allPlaces.length === 0 ? (
-              <Text>Сначала создайте места в разделе "Места".</Text>
+              <Text>{t("tripDetails.createPlacesFirst")}</Text>
             ) : (
               <ScrollView style={styles.dialogList}>
                 {allPlaces.map((place) => (
                   <List.Item
                     key={place.id}
                     title={place.name}
-                    description={place.description ?? "Без описания"}
+                    description={place.description ?? t("common.noDescription")}
                     left={(props) => <List.Icon {...props} icon="map-marker" />}
                     onPress={() => {
                       setIsPlaceDialogVisible(false);
@@ -496,7 +500,9 @@ export default function TripDetailsScreen() {
             )}
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setIsPlaceDialogVisible(false)}>Закрыть</Button>
+            <Button onPress={() => setIsPlaceDialogVisible(false)}>
+              {t("common.close")}
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>

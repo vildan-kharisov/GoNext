@@ -1,26 +1,28 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { Button, Surface } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import { AppScreen } from "../src/components/AppScreen";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
-    <AppScreen title="GoNext">
+    <AppScreen title={t("common.appName")}>
       <View style={styles.content}>
         <Surface style={styles.menuCard} elevation={1}>
           <Button mode="contained" style={styles.button} onPress={() => router.push("/places")}>
-          Места
+            {t("home.places")}
           </Button>
           <Button mode="contained" style={styles.button} onPress={() => router.push("/trips")}>
-          Поездки
+            {t("home.trips")}
           </Button>
           <Button mode="contained" style={styles.button} onPress={() => router.push("/next-place")}>
-          Следующее место
+            {t("home.nextPlace")}
           </Button>
           <Button mode="contained" style={styles.button} onPress={() => router.push("/settings")}>
-          Настройки
+            {t("home.settings")}
           </Button>
         </Surface>
       </View>

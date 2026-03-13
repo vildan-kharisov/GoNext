@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { FlatList, StyleSheet } from "react-native";
 import { FAB, List } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import { AppScreen } from "../src/components/AppScreen";
 import { StateBlock } from "../src/components/StateBlock";
 import { listPlaces } from "../src/database";
@@ -10,6 +11,7 @@ import { Place } from "../src/types/models";
 
 export default function PlacesScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [places, setPlaces] = useState<Place[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -21,11 +23,11 @@ export default function PlacesScreen() {
       setPlaces(data);
     } catch (error) {
       console.error("Failed to load places", error);
-      setErrorText("Не удалось загрузить список мест.");
+      setErrorText(t("places.loadError"));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -35,17 +37,17 @@ export default function PlacesScreen() {
 
   return (
     <AppScreen
-      title="Места"
+      title={t("places.title")}
       canGoBack
       actions={[{ icon: "plus", onPress: () => router.push("/place-create") }]}
     >
       {isLoading ? (
-        <StateBlock title="Загрузка мест..." />
+        <StateBlock title={t("places.loading")} />
       ) : errorText ? (
         <StateBlock
-          title="Ошибка загрузки"
+          title={t("common.error")}
           description={errorText}
-          actionLabel="Повторить"
+          actionLabel={t("common.retry")}
           onActionPress={() => {
             setIsLoading(true);
             void loadPlaces();
@@ -61,7 +63,7 @@ export default function PlacesScreen() {
           renderItem={({ item }) => (
             <List.Item
               title={item.name}
-              description={item.description || "Без описания"}
+              description={item.description || t("common.noDescription")}
               left={(props) => <List.Icon {...props} icon="map-marker" />}
               right={(props) => <List.Icon {...props} icon="chevron-right" />}
               style={styles.listItem}
@@ -70,9 +72,9 @@ export default function PlacesScreen() {
           )}
           ListEmptyComponent={
             <StateBlock
-              title="Пока нет мест"
-              description='Нажмите "+" чтобы добавить первое место.'
-              actionLabel="Создать место"
+              title={t("places.emptyTitle")}
+              description={t("places.emptyDescription")}
+              actionLabel={t("places.createAction")}
               onActionPress={() => router.push("/place-create")}
             />
           }

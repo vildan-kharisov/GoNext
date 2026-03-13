@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import {
   Appbar,
   Button,
@@ -14,6 +15,7 @@ import { createTrip } from "../src/database";
 
 export default function TripCreateScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -25,7 +27,7 @@ export default function TripCreateScreen() {
   const onSave = async () => {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
-      setErrorText("Название поездки обязательно.");
+      setErrorText(t("tripCreate.requiredName"));
       return;
     }
 
@@ -43,7 +45,7 @@ export default function TripCreateScreen() {
       router.replace(`/trip/${id}`);
     } catch (error) {
       console.error("Failed to create trip", error);
-      setErrorText("Не удалось создать поездку.");
+      setErrorText(t("tripCreate.saveError"));
     } finally {
       setIsSaving(false);
     }
@@ -53,39 +55,39 @@ export default function TripCreateScreen() {
     <ScreenBackground>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Новая поездка" />
+        <Appbar.Content title={t("tripCreate.title")} />
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.form}>
           <TextInput
             mode="outlined"
-            label="Название поездки"
+            label={t("tripCreate.tripName")}
             value={title}
             onChangeText={setTitle}
           />
           <TextInput
             mode="outlined"
-            label="Описание"
+            label={t("tripCreate.description")}
             value={description}
             onChangeText={setDescription}
             multiline
           />
           <TextInput
             mode="outlined"
-            label="Дата начала (YYYY-MM-DD)"
+            label={t("tripCreate.startDate")}
             value={startDate}
             onChangeText={setStartDate}
           />
           <TextInput
             mode="outlined"
-            label="Дата окончания (YYYY-MM-DD)"
+            label={t("tripCreate.endDate")}
             value={endDate}
             onChangeText={setEndDate}
           />
 
           <View style={styles.switchRow}>
-            <Text variant="bodyLarge">Сделать текущей поездкой</Text>
+            <Text variant="bodyLarge">{t("tripCreate.makeCurrent")}</Text>
             <Switch value={current} onValueChange={setCurrent} />
           </View>
 
@@ -94,7 +96,7 @@ export default function TripCreateScreen() {
           </HelperText>
 
           <Button mode="contained" loading={isSaving} onPress={onSave}>
-            Сохранить
+            {t("common.save")}
           </Button>
         </View>
       </ScrollView>

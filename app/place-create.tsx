@@ -1,6 +1,7 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import {
   Appbar,
   Button,
@@ -35,6 +36,7 @@ function parseCoordinates(value: string): { latitude: number; longitude: number 
 
 export default function PlaceCreateScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [coordinates, setCoordinates] = useState("");
@@ -46,7 +48,7 @@ export default function PlaceCreateScreen() {
   const onSave = async () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setErrorText("Название места обязательно.");
+      setErrorText(t("placeCreate.requiredName"));
       return;
     }
 
@@ -56,7 +58,7 @@ export default function PlaceCreateScreen() {
     try {
       const parsedCoordinates = parseCoordinates(coordinates);
       if (coordinates.trim() && !parsedCoordinates) {
-        setErrorText("Введите координаты в формате: 55.744920, 37.604677");
+        setErrorText(t("placeCreate.invalidCoordinates"));
         setIsSaving(false);
         return;
       }
@@ -73,7 +75,7 @@ export default function PlaceCreateScreen() {
       router.replace(`/place/${newId}`);
     } catch (error) {
       console.error("Failed to create place", error);
-      setErrorText("Не удалось сохранить место.");
+      setErrorText(t("placeCreate.saveError"));
     } finally {
       setIsSaving(false);
     }
@@ -83,38 +85,38 @@ export default function PlaceCreateScreen() {
     <ScreenBackground>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Новое место" />
+        <Appbar.Content title={t("placeCreate.title")} />
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.form}>
           <TextInput
             mode="outlined"
-            label="Название"
+            label={t("placeCreate.name")}
             value={name}
             onChangeText={setName}
           />
           <TextInput
             mode="outlined"
-            label="Описание"
+            label={t("placeCreate.description")}
             value={description}
             onChangeText={setDescription}
             multiline
           />
           <TextInput
             mode="outlined"
-            label="Координаты"
-            placeholder="55.744920, 37.604677"
+            label={t("placeCreate.coordinates")}
+            placeholder={t("placeCreate.coordinatesPlaceholder")}
             value={coordinates}
             onChangeText={setCoordinates}
           />
 
           <View style={styles.switchRow}>
-            <Text variant="bodyLarge">Посетить позже</Text>
+            <Text variant="bodyLarge">{t("placeCreate.visitLater")}</Text>
             <Switch value={visitLater} onValueChange={setVisitLater} />
           </View>
           <View style={styles.switchRow}>
-            <Text variant="bodyLarge">Понравилось</Text>
+            <Text variant="bodyLarge">{t("placeCreate.liked")}</Text>
             <Switch value={liked} onValueChange={setLiked} />
           </View>
 
@@ -123,7 +125,7 @@ export default function PlaceCreateScreen() {
           </HelperText>
 
           <Button mode="contained" loading={isSaving} onPress={onSave}>
-            Сохранить
+            {t("common.save")}
           </Button>
         </View>
       </ScrollView>

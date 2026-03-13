@@ -2,6 +2,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Image,
   Linking,
@@ -51,6 +52,7 @@ function parseCoordinates(value: string): { latitude: number; longitude: number 
 export default function PlaceDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const placeId = useMemo(() => Number(id), [id]);
 
   const [place, setPlace] = useState<Place | null>(null);
@@ -80,7 +82,7 @@ export default function PlaceDetailsScreen() {
 
   const loadData = useCallback(async () => {
     if (!Number.isFinite(placeId)) {
-      setErrorText("Некорректный id места.");
+      setErrorText(t("placeDetails.invalidId"));
       setIsLoading(false);
       return;
     }
@@ -92,7 +94,7 @@ export default function PlaceDetailsScreen() {
       ]);
 
       if (!placeData) {
-        setErrorText("Место не найдено.");
+        setErrorText(t("placeDetails.notFound"));
         return;
       }
 
@@ -101,11 +103,11 @@ export default function PlaceDetailsScreen() {
       fillForm(placeData);
     } catch (error) {
       console.error("Failed to load place details", error);
-      setErrorText("Не удалось загрузить карточку места.");
+      setErrorText(t("placeDetails.loadError"));
     } finally {
       setIsLoading(false);
     }
-  }, [fillForm, placeId]);
+  }, [fillForm, placeId, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -116,14 +118,14 @@ export default function PlaceDetailsScreen() {
 
   const onOpenMap = async () => {
     if (!place || place.latitude == null || place.longitude == null) {
-      setErrorText("Для открытия карты нужны координаты.");
+      setErrorText(t("placeDetails.mapNeedsCoordinates"));
       return;
     }
 
     const url = `https://www.google.com/maps/search/?api=1&query=${place.latitude},${place.longitude}`;
     const canOpen = await Linking.canOpenURL(url);
     if (!canOpen) {
-      setErrorText("Не удалось открыть карту.");
+      setErrorText(t("placeDetails.mapOpenError"));
       return;
     }
 
@@ -137,7 +139,7 @@ export default function PlaceDetailsScreen() {
 
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setErrorText("Название места обязательно.");
+      setErrorText(t("placeDetails.requiredName"));
       return;
     }
 
@@ -147,7 +149,7 @@ export default function PlaceDetailsScreen() {
     try {
       const parsedCoordinates = parseCoordinates(coordinates);
       if (coordinates.trim() && !parsedCoordinates) {
-        setErrorText("Введите координаты в формате: 55.744920, 37.604677");
+        setErrorText(t("placeDetails.invalidCoordinates"));
         setIsSaving(false);
         return;
       }
@@ -162,7 +164,7 @@ export default function PlaceDetailsScreen() {
       });
 
       if (!updated) {
-        setErrorText("Не удалось обновить место.");
+        setErrorText(t("placeDetails.updateError"));
         return;
       }
 
@@ -174,7 +176,7 @@ export default function PlaceDetailsScreen() {
       setIsEditing(false);
     } catch (error) {
       console.error("Failed to update place", error);
-      setErrorText("Ошибка при сохранении.");
+      setErrorText(t("placeDetails.saveError"));
     } finally {
       setIsSaving(false);
     }
@@ -191,7 +193,7 @@ export default function PlaceDetailsScreen() {
       const permission =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        setErrorText("Нужен доступ к галерее для добавления фото.");
+        setErrorText(t("placeDetails.galleryPermission"));
         return;
       }
 
@@ -210,7 +212,7 @@ export default function PlaceDetailsScreen() {
       setPhotos(updatedPhotos);
     } catch (error) {
       console.error("Failed to add photo", error);
-      setErrorText("Не удалось добавить фото.");
+      setErrorText(t("placeDetails.addPhotoError"));
     }
   };
 
@@ -219,10 +221,10 @@ export default function PlaceDetailsScreen() {
       <ScreenBackground>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
-          <Appbar.Content title="Карточка места" />
+          <Appbar.Content title={t("placeDetails.title")} />
         </Appbar.Header>
         <View style={styles.centered}>
-          <Text variant="titleMedium">Загрузка...</Text>
+          <Text variant="titleMedium">{t("common.loading")}</Text>
         </View>
       </ScreenBackground>
     );
@@ -232,7 +234,7 @@ export default function PlaceDetailsScreen() {
     <ScreenBackground>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Карточка места" />
+        <Appbar.Content title={t("placeDetails.title")} />
         <Appbar.Action
           icon={isEditing ? "close" : "pencil"}
           onPress={() => setIsEditing((prev) => !prev)}
@@ -244,14 +246,14 @@ export default function PlaceDetailsScreen() {
           <View style={styles.card}>
             <TextInput
               mode="outlined"
-              label="Название"
+              label={t("placeCreate.name")}
               value={name}
               onChangeText={setName}
               editable={isEditing}
             />
             <TextInput
               mode="outlined"
-              label="Описание"
+              label={t("placeCreate.description")}
               value={description}
               onChangeText={setDescription}
               editable={isEditing}
@@ -259,15 +261,15 @@ export default function PlaceDetailsScreen() {
             />
             <TextInput
               mode="outlined"
-              label="Координаты"
-              placeholder="55.744920, 37.604677"
+              label={t("placeCreate.coordinates")}
+              placeholder={t("placeCreate.coordinatesPlaceholder")}
               value={coordinates}
               onChangeText={setCoordinates}
               editable={isEditing}
             />
 
             <View style={styles.switchRow}>
-              <Text variant="bodyLarge">Посетить позже</Text>
+              <Text variant="bodyLarge">{t("placeCreate.visitLater")}</Text>
               <Switch
                 value={visitLater}
                 onValueChange={setVisitLater}
@@ -276,7 +278,7 @@ export default function PlaceDetailsScreen() {
             </View>
 
             <View style={styles.switchRow}>
-              <Text variant="bodyLarge">Понравилось</Text>
+              <Text variant="bodyLarge">{t("placeCreate.liked")}</Text>
               <Switch
                 value={liked}
                 onValueChange={setLiked}
@@ -287,21 +289,21 @@ export default function PlaceDetailsScreen() {
             <View style={styles.buttonRow}>
               {isEditing ? (
                 <Button mode="contained" loading={isSaving} onPress={onSave}>
-                  Сохранить
+                  {t("common.save")}
                 </Button>
               ) : (
                 <Button mode="contained" onPress={onOpenMap}>
-                  Открыть на карте
+                  {t("placeDetails.openOnMap")}
                 </Button>
               )}
               <Button mode="outlined" onPress={onAddPhoto}>
-                Добавить фото
+                {t("placeDetails.addPhoto")}
               </Button>
             </View>
 
-            <Text variant="titleMedium">Фотографии</Text>
+            <Text variant="titleMedium">{t("placeDetails.photos")}</Text>
             {photos.length === 0 ? (
-              <Text variant="bodyMedium">Фото пока не добавлены.</Text>
+              <Text variant="bodyMedium">{t("placeDetails.noPhotos")}</Text>
             ) : (
               <ScrollView horizontal contentContainerStyle={styles.photosRow}>
                 {photos.map((photo) => (
@@ -316,7 +318,7 @@ export default function PlaceDetailsScreen() {
           </View>
         ) : (
           <View style={styles.centered}>
-            <Text variant="titleMedium">Место не найдено.</Text>
+            <Text variant="titleMedium">{t("placeDetails.notFoundScreen")}</Text>
           </View>
         )}
 

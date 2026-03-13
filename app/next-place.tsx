@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Linking, StyleSheet, View } from "react-native";
 import { Button, Card, List, Text } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import { AppScreen } from "../src/components/AppScreen";
 import { StateBlock } from "../src/components/StateBlock";
 import {
@@ -16,6 +17,7 @@ import { Trip } from "../src/types/models";
 
 export default function NextPlaceScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
   const [currentTrip, setCurrentTripState] = useState<Trip | null>(null);
@@ -39,11 +41,11 @@ export default function NextPlaceScreen() {
       setAllTrips([]);
     } catch (error) {
       console.error("Failed to load next place", error);
-      setErrorText("Не удалось загрузить следующее место.");
+      setErrorText(t("nextPlace.loadError"));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -65,14 +67,14 @@ export default function NextPlaceScreen() {
 
   const openMap = async () => {
     if (!coords) {
-      setErrorText("У следующего места не заполнены координаты.");
+      setErrorText(t("nextPlace.noCoords"));
       return;
     }
 
     const url = `https://www.google.com/maps/search/?api=1&query=${coords}`;
     const canOpen = await Linking.canOpenURL(url);
     if (!canOpen) {
-      setErrorText("Не удалось открыть карту.");
+      setErrorText(t("nextPlace.openMapError"));
       return;
     }
 
@@ -81,14 +83,14 @@ export default function NextPlaceScreen() {
 
   const openNavigator = async () => {
     if (!coords) {
-      setErrorText("У следующего места не заполнены координаты.");
+      setErrorText(t("nextPlace.noCoords"));
       return;
     }
 
     const url = `https://www.google.com/maps/dir/?api=1&destination=${coords}&travelmode=driving`;
     const canOpen = await Linking.canOpenURL(url);
     if (!canOpen) {
-      setErrorText("Не удалось открыть навигатор.");
+      setErrorText(t("nextPlace.openNavigatorError"));
       return;
     }
 
@@ -102,31 +104,31 @@ export default function NextPlaceScreen() {
       await loadData();
     } catch (error) {
       console.error("Failed to set current trip", error);
-      setErrorText("Не удалось выбрать текущую поездку.");
+      setErrorText(t("nextPlace.setCurrentError"));
     }
   };
 
   return (
     <AppScreen
-      title="Следующее место"
+      title={t("nextPlace.title")}
       canGoBack
       actions={[{ icon: "refresh", onPress: () => void loadData() }]}
     >
       <View style={styles.content}>
         {isLoading ? (
-          <StateBlock title="Загрузка..." />
+          <StateBlock title={t("common.loading")} />
         ) : !currentTrip ? (
           <Card style={styles.card}>
-            <Card.Title title="Нет текущей поездки" />
+            <Card.Title title={t("nextPlace.noCurrentTrip")} />
             <Card.Content style={styles.section}>
               <Text variant="bodyLarge">
-                Выберите поездку как текущую, чтобы определить следующее место.
+                {t("nextPlace.noCurrentTripDescription")}
               </Text>
               {allTrips.length === 0 ? (
                 <>
-                  <Text variant="bodyMedium">Сначала создайте поездку.</Text>
+                  <Text variant="bodyMedium">{t("nextPlace.noTrips")}</Text>
                   <Button mode="contained" onPress={() => router.push("/trips")}>
-                    Перейти в поездки
+                    {t("nextPlace.goToTrips")}
                   </Button>
                 </>
               ) : (
@@ -134,11 +136,11 @@ export default function NextPlaceScreen() {
                   <List.Item
                     key={trip.id}
                     title={trip.title}
-                    description={trip.description || "Без описания"}
+                    description={trip.description || t("common.noDescription")}
                     left={(props) => <List.Icon {...props} icon="map-marker-path" />}
                     right={() => (
                       <Button mode="text" onPress={() => void setTripAsCurrent(trip.id)}>
-                        Сделать текущей
+                        {t("nextPlace.makeCurrent")}
                       </Button>
                     )}
                   />
@@ -148,13 +150,13 @@ export default function NextPlaceScreen() {
           </Card>
         ) : !nextPlace ? (
           <Card style={styles.card}>
-            <Card.Title title="Маршрут завершён" subtitle={currentTrip.title} />
+            <Card.Title title={t("nextPlace.routeCompleted")} subtitle={currentTrip.title} />
             <Card.Content style={styles.section}>
               <Text variant="bodyLarge">
-                В текущей поездке все места уже отмечены как посещённые.
+                {t("nextPlace.routeCompletedDescription")}
               </Text>
               <Button mode="contained" onPress={() => router.push(`/trip/${currentTrip.id}`)}>
-                Открыть поездку
+                {t("nextPlace.openTrip")}
               </Button>
             </Card.Content>
           </Card>
@@ -163,23 +165,23 @@ export default function NextPlaceScreen() {
             <Card.Title title={nextPlace.place.name} subtitle={currentTrip.title} />
             <Card.Content style={styles.section}>
               <Text variant="bodyMedium">
-                {nextPlace.place.description || "Описание отсутствует."}
+                {nextPlace.place.description || t("nextPlace.noPlaceDescription")}
               </Text>
               <Text variant="bodyMedium">
-                Порядок в маршруте: {nextPlace.tripPlace.orderIndex + 1}
+                {t("nextPlace.routeOrder", { order: nextPlace.tripPlace.orderIndex + 1 })}
               </Text>
               <Text variant="bodyMedium">
-                Координаты: {coords ?? "не указаны"}
+                {t("nextPlace.coordinates", { coords: coords ?? t("nextPlace.noCoordinates") })}
               </Text>
               <View style={styles.actions}>
                 <Button mode="contained" onPress={openMap} disabled={!coords}>
-                  Открыть на карте
+                  {t("nextPlace.openOnMap")}
                 </Button>
                 <Button mode="outlined" onPress={openNavigator} disabled={!coords}>
-                  Открыть в навигаторе
+                  {t("nextPlace.openInNavigator")}
                 </Button>
                 <Button mode="text" onPress={() => router.push(`/trip/${currentTrip.id}`)}>
-                  Открыть поездку
+                  {t("nextPlace.openTrip")}
                 </Button>
               </View>
             </Card.Content>

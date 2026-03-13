@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { FlatList, StyleSheet } from "react-native";
 import { FAB, List } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import { AppScreen } from "../src/components/AppScreen";
 import { StateBlock } from "../src/components/StateBlock";
 import { listTrips } from "../src/database";
@@ -10,6 +11,7 @@ import { Trip } from "../src/types/models";
 
 export default function TripsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorText, setErrorText] = useState<string | null>(null);
@@ -21,11 +23,11 @@ export default function TripsScreen() {
       setTrips(data);
     } catch (error) {
       console.error("Failed to load trips", error);
-      setErrorText("Не удалось загрузить список поездок.");
+      setErrorText(t("trips.loadError"));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -35,17 +37,17 @@ export default function TripsScreen() {
 
   return (
     <AppScreen
-      title="Поездки"
+      title={t("trips.title")}
       canGoBack
       actions={[{ icon: "plus", onPress: () => router.push("/trip-create") }]}
     >
       {isLoading ? (
-        <StateBlock title="Загрузка поездок..." />
+        <StateBlock title={t("trips.loading")} />
       ) : errorText ? (
         <StateBlock
-          title="Ошибка загрузки"
+          title={t("common.error")}
           description={errorText}
-          actionLabel="Повторить"
+          actionLabel={t("common.retry")}
           onActionPress={() => {
             setIsLoading(true);
             void loadTrips();
@@ -63,8 +65,8 @@ export default function TripsScreen() {
               title={item.title}
               description={
                 item.current
-                  ? "Текущая поездка"
-                  : item.description || "Без описания"
+                  ? t("trips.currentTrip")
+                  : item.description || t("common.noDescription")
               }
               left={(props) => (
                 <List.Icon
@@ -79,9 +81,9 @@ export default function TripsScreen() {
           )}
           ListEmptyComponent={
             <StateBlock
-              title="Пока нет поездок"
-              description='Нажмите "+" для создания первой поездки.'
-              actionLabel="Создать поездку"
+              title={t("trips.emptyTitle")}
+              description={t("trips.emptyDescription")}
+              actionLabel={t("trips.createAction")}
               onActionPress={() => router.push("/trip-create")}
             />
           }

@@ -13,6 +13,7 @@ import {
   AppThemeProvider,
   useAppThemeMode,
 } from "../src/theme/AppThemeContext";
+import { initI18n } from "../src/i18n";
 
 function getPaperTheme(mode: AppThemeMode, primaryColor: AppPrimaryColor) {
   const baseTheme = mode === "dark" ? MD3DarkTheme : MD3LightTheme;
@@ -34,9 +35,9 @@ function RootLayoutContent() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    void initializeDatabase()
+    void Promise.all([initializeDatabase(), initI18n()])
       .catch((error: unknown) => {
-        console.error("Database initialization failed", error);
+        console.error("App initialization failed", error);
       })
       .finally(() => {
         setIsReady(true);
