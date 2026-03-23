@@ -122,7 +122,16 @@ export default function PlaceDetailsScreen() {
       return;
     }
 
-    const url = `https://www.google.com/maps/search/?api=1&query=${place.latitude},${place.longitude}`;
+    // Открываем Yandex Maps с координатами в поле "Поиск" и меткой на карте.
+    // "text" — запрос в поиске, для координат обычно ожидают формат "lat, lon".
+    // "pt" + "ll" — подсказка карте, куда поставить точку.
+    const lat = place.latitude;
+    const lon = place.longitude;
+    const searchText = `${lat}, ${lon}`;
+
+    const url = `https://yandex.ru/maps/?text=${encodeURIComponent(
+      searchText
+    )}&ll=${lon},${lat}&z=16&pt=${lon},${lat},pmrdm1`;
     const canOpen = await Linking.canOpenURL(url);
     if (!canOpen) {
       setErrorText(t("placeDetails.mapOpenError"));
